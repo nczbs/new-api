@@ -1,0 +1,6 @@
+interface:
+  display_name: "new-api"
+  short_description: "Navigate new-api architecture, relay adapters, billing, runtime, persistence, tests, and frontend conventions"
+  default_prompt: "Use $new-api-project to understand the affected module, read the relevant references, and proceed safely in /root/project/new-api."
+policy:
+  allow_implicit_invocation: true
