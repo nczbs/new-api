@@ -72,7 +72,7 @@ Content-Type: application/json; charset=utf-8
 |---------------------------|---------|-----------------------------------------------------|
 | `response_format.enabled` | boolean | 是否启用统一响应格式                                          |
 | `response_format.mode`    | string  | 响应模式判定策略。第一版唯一有效值为 `client_stream`，表示以客户端原始请求是否流式为准 |
-| `response_format.rules`   | array   | 第一版预留为空数组，不执行                                       |
+| `response_format.rules`   | array   | 对象数组。第一版不解析执行，但必须可 round-trip 保留未知字段                    |
 
 `response_format.mode` 说明：
 
@@ -89,7 +89,8 @@ Content-Type: application/json; charset=utf-8
 - `response_format.enabled` 为 `false` 时视为关闭。
 - `response_format.enabled` 为 `true` 且 `response_format.mode` 缺失或为 `client_stream` 时生效。
 - `response_format.enabled` 为 `true` 但 `response_format.mode` 为未知值时，保守视为关闭，避免错误配置改变线上行为。
-- `response_format.rules` 第一版不解析执行，仅保留后续扩展位置。
+- `response_format.rules` 第一版不解析执行，仅保留后续扩展位置；后端 DTO 不得使用空 struct 表示规则。
+- `response_format.rules` 必须能 round-trip 保留每条规则中的未知字段，避免未来版本或用户手写配置在读取、回填、保存后丢失。
 - 前端开启保存时应保留已有 `response_format.rules`，不得因为开启开关清空用户手写或未来版本写入的规则。
 - 前端关闭保存时必须写入完整默认对象，明确表达该能力已关闭：
 
@@ -113,15 +114,14 @@ Content-Type: application/json; charset=utf-8
 
 ```go
 type ChannelResponseFormatSettings struct {
-Enabled bool                        `json:"enabled,omitempty"`
-Mode    string                      `json:"mode,omitempty"`
-Rules   []ChannelResponseFormatRule `json:"rules,omitempty"`
-}
-
-type ChannelResponseFormatRule struct {
-// 第一版仅预留结构，暂不定义执行语义。
+Enabled bool             `json:"enabled,omitempty"`
+Mode    string           `json:"mode,omitempty"`
+Rules   []map[string]any `json:"rules,omitempty"`
 }
 ```
+
+`rules` 不能建模为空 struct。虽然第一版不定义规则执行语义，但规则对象必须用 `map[string]any` 保存原始字段，使未知字段在解析
+`setting` 后再次序列化时不会丢失。
 
 `dto.ChannelSettings` 增加：
 
@@ -164,20 +164,24 @@ info.IsStream = info.IsStream || strings.HasPrefix(httpResp.Header.Get("Content-
 func ApplyUpstreamContentTypeStreamDetection(info *relaycommon.RelayInfo, contentType string)
 ```
 
+该 helper 只用于收敛已有的上游 `Content-Type` -> `info.IsStream` 自动升级逻辑，不用于给所有入口新增自动检测。
+直接 `/v1/responses` 当前没有这类检测点，实现时不得在 `ResponsesHelper` 中新增该 helper 调用。
+
 helper 内部应解析上游 `Content-Type` 的 media type，例如使用 `mime.ParseMediaType`，避免大小写、空格、`; charset=utf-8`
 等格式差异导致误判。
 
 行为规则：
 
 - 未开启 `response_format.enabled` 时，保持现有逻辑。
-- 当前 relay mode 不是 `RelayModeChatCompletions` 或 `RelayModeResponses` 时，保持现有逻辑。
+- 当前已有检测调用点的 relay mode 不是 `RelayModeChatCompletions` 或 `RelayModeResponses` 时，保持现有逻辑。
 - `info.ClientRequestedStream` 为 `true` 时，保持流式逻辑。
-- 开启配置且当前请求是非流式目标接口时，忽略上游 `text/event-stream` 对 `info.IsStream` 的自动升级。
+- 开启配置且当前已有检测调用点属于非流式目标接口时，忽略上游 `text/event-stream` 对 `info.IsStream` 的自动升级。
 
 `/v1/responses` 误判点说明：
 
 - 直接 `/v1/responses` 入口的 `ResponsesHelper` 当前没有发现基于上游 `Content-Type` 自动升级 `info.IsStream`
   的逻辑；其流式语义来自请求体 `stream` 字段。
+- 直接 `/v1/responses` 不需要新增上游 `Content-Type` -> `info.IsStream` 自动检测，也不得因为本能力接入而新增该检测。
 - 已核实的 `RelayModeResponses` 误判点存在于 `relay/chat_completions_via_responses.go`：该内部转换路径会临时把
   `info.RelayMode` 设置为 `RelayModeResponses`，请求上游 Responses API 后再根据上游 `Content-Type: text/event-stream` 修改
   `info.IsStream`。
@@ -189,6 +193,7 @@ helper 内部应解析上游 `Content-Type` 的 media type，例如使用 `mime.
 - endpoint 覆盖范围必须基于 `info.RelayMode` 判断，而不是直接对请求路径做前缀匹配。
 - `/v1/responses` 只对应 `RelayModeResponses`；`/v1/responses/compact` 对应独立的 `RelayModeResponsesCompact`，必须保持排除。
 - 不要使用 `strings.HasPrefix(path, "/v1/responses")` 判断是否命中本能力，否则会把 `/v1/responses/compact` 误纳入覆盖范围。
+- 不要为了“统一”把 stream auto-detect helper 接入直接 `/v1/responses`，否则会改变直接 Responses 入口的既有 stream 语义。
 
 该 helper 应替代所有现有上游 `Content-Type` 自动升级 `info.IsStream` 的直接写法，避免遗漏和行为分叉。替换后，非目标 relay
 mode 必须由 helper 保持原行为。
@@ -209,6 +214,7 @@ mode 必须由 helper 保持原行为。
 生效行为：
 
 - 覆盖下游响应 `Content-Type` 为 `application/json; charset=utf-8`。
+- 直接 `/v1/responses` 与 `chat_completions_via_responses` 内部转换路径都需要设置响应头规范化 flag。
 - 继续保留现有其他可透传响应头逻辑。
 - `Content-Length` 仍由写回逻辑按最终 body 重新计算。
 - 请求 ID 捕获逻辑保持不变。
@@ -222,6 +228,8 @@ mode 必须由 helper 保持原行为。
   接收规范化意图；无论采用哪种方式，最终覆盖动作都必须由统一写回路径执行。
 - 不要把渠道级 `response_format` 判定逻辑直接扩散到与 relay 无关的通用 HTTP 工具中；如果需要复用，应由 relay 层先根据
   `RelayInfo` 计算策略，再传给写回层执行。
+- header flag 设置与 stream auto-detect helper 是两件独立工作：直接 `/v1/responses` 需要设置 header flag，但不得新增
+  上游 `Content-Type` -> `info.IsStream` 自动检测。
 
 ### 与 Force Format 的关系
 
@@ -252,7 +260,7 @@ mode 必须由 helper 保持原行为。
 - 编辑旧渠道时，如果 `setting.response_format` 缺失，显示为关闭。
 - 开启后保存到 `setting.response_format.enabled=true`。
 - 保存时始终写入 `mode="client_stream"`。
-- 开启保存时，新建渠道首次开启可写入 `rules=[]`；编辑已有渠道时必须保留现有 `rules`。
+- 开启保存时，新建渠道首次开启可写入 `rules=[]`；编辑已有渠道时必须保留现有 `rules`，包括每条规则中的未知字段。
 - 关闭保存时，写入 `response_format.enabled=false`、`mode="client_stream"` 与 `rules=[]`，不得删除整个 `response_format`
   对象。
 - 不展示规则列表入口。
@@ -270,18 +278,20 @@ mode 必须由 helper 保持原行为。
 2. 开启后，`/v1/chat/completions` 非流式请求遇到上游 `Content-Type: text/event-stream` 时，不升级为流式。
 3. 开启后，`chat_completions_via_responses` 内部转换路径遇到上游 `Content-Type: text/event-stream` 时，不升级为流式。
 4. 直接 `/v1/responses` 的流式判断仍来自请求体 `stream` 字段，不因上游响应头改变客户端语义。
-5. 开启后，目标接口 `200 OK` 非流式响应最终返回 `application/json; charset=utf-8`。
-6. 客户端流式请求不受影响，仍走流式响应。
-7. `/v1/messages` 不受影响。
-8. Gemini native 不受影响。
-9. `/v1/responses/compact` 不受影响。
-10. `/v1/completions` 不受影响。
-11. 非 200 错误响应不进入统一响应格式处理。
-12. 上游 body 实际为 SSE 时，不做聚合，沿用非流式解析失败路径。
-13. helper 单元测试覆盖 `RelayModeChatCompletions`、`RelayModeResponses`、`RelayModeResponsesCompact`、Gemini
+5. 开启后，直接 `/v1/responses` 的 `200 OK` 非流式响应最终返回 `application/json; charset=utf-8`。
+6. 开启后，`chat_completions_via_responses` 内部转换路径的 `200 OK` 非流式响应最终返回
+   `application/json; charset=utf-8`。
+7. 客户端流式请求不受影响，仍走流式响应。
+8. `/v1/messages` 不受影响。
+9. Gemini native 不受影响。
+10. `/v1/responses/compact` 不受影响。
+11. `/v1/completions` 不受影响。
+12. 非 200 错误响应不进入统一响应格式处理。
+13. 上游 body 实际为 SSE 时，不做聚合，沿用非流式解析失败路径。
+14. helper 单元测试覆盖 `RelayModeChatCompletions`、`RelayModeResponses`、`RelayModeResponsesCompact`、Gemini
     native、images、messages、completions 等模式。
-14. `Content-Type` media type 解析覆盖大小写、空格、带 charset 参数等情况。
-15. 响应头测试确认 `Content-Length` 仍按最终 body 重算，请求 ID 捕获逻辑不变。
+15. `Content-Type` media type 解析覆盖大小写、空格、带 charset 参数等情况。
+16. 响应头测试确认 `Content-Length` 仍按最终 body 重算，请求 ID 捕获逻辑不变。
 
 ### 前端测试与检查
 
@@ -293,6 +303,7 @@ mode 必须由 helper 保持原行为。
 4. 关闭后后端按关闭处理。
 5. 新增 i18n key 后运行 i18n 同步。
 6. 修改 TypeScript/TSX 后运行类型检查。
+7. 编辑已有渠道时，`response_format.rules` 中的未知字段在回填和保存后仍可 round-trip 保留。
 
 ## 后续扩展
 
