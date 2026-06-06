@@ -2,14 +2,14 @@
 
 ## 1. 后端配置契约
 
-- [ ] 在 `dto.ChannelSettings` 中新增 `ResponseFormat` 字段，对应 `setting.response_format`
-- [ ] 新增 `ChannelResponseFormatSettings`，包含 `enabled`、`mode`、`rules`
-- [ ] `rules` 使用 ``Rules []map[string]any `json:"rules,omitempty"` ``，不得使用空 struct 预留规则
-- [ ] 确保 `response_format.rules` 解析后再序列化时能 round-trip 保留每条规则中的未知字段
-- [ ] 新增 `client_stream` mode 常量或等价判断逻辑
-- [ ] 实现启用判定：缺失配置关闭、`enabled=false` 关闭、`enabled=true && mode==""` 生效、`enabled=true && mode=="client_stream"` 生效、未知 mode 关闭
-- [ ] Test: 覆盖 `ChannelResponseFormatSettings` 启用、关闭、未知 mode 的判定分支
-- [ ] Test: 覆盖 `response_format.rules` 未知字段的反序列化和重新序列化不丢失
+- [x] 在 `dto.ChannelSettings` 中新增 `ResponseFormat` 字段，对应 `setting.response_format`
+- [x] 新增 `ChannelResponseFormatSettings`，包含 `enabled`、`mode`、`rules`
+- [x] `rules` 使用 ``Rules []map[string]any `json:"rules,omitempty"` ``，不得使用空 struct 预留规则
+- [x] 确保 `response_format.rules` 解析后再序列化时能 round-trip 保留每条规则中的未知字段
+- [x] 新增 `client_stream` mode 常量或等价判断逻辑
+- [x] 实现启用判定：缺失配置关闭、`enabled=false` 关闭、`enabled=true && mode==""` 生效、`enabled=true && mode=="client_stream"` 生效、未知 mode 关闭
+- [x] Test: 覆盖 `ChannelResponseFormatSettings` 启用、关闭、未知 mode 的判定分支
+- [x] Test: 覆盖 `response_format.rules` 未知字段的反序列化和重新序列化不丢失
 
 ## 2. Relay 原始客户端 Stream 语义
 
