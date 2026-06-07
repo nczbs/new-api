@@ -4,8 +4,8 @@ Date: 2026-06-07
 Feature Slice: Frontend unified response format settings and regression cleanup
 Status: completed
 Branch: dev
-Commit: 81bd1e5c
-Pushed: pending
+Commit: 4b6bdb91
+Pushed: yes
 Design Document: docs/dev/response-format-dev.md
 Checklist Document: docs/dev/checklsit/response-format-checklist.md
 
