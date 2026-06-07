@@ -13,27 +13,27 @@
 
 ## 2. Relay 原始客户端 Stream 语义
 
-- [ ] 在 `relay/common.RelayInfo` 中新增 `ClientRequestedStream bool`
-- [ ] 在 `genBaseRelayInfo` 中由 `request.IsStream(c)` 同时初始化 `IsStream` 与 `ClientRequestedStream`
-- [ ] 确保后续 handler、adapter、内部转换逻辑只修改 `IsStream`，不修改 `ClientRequestedStream`
-- [ ] 检查 `GenRelayInfoResponses`、`GenRelayInfoOpenAI`、`GenRelayInfoClaude`、`GenRelayInfoGemini`、`GenRelayInfoImage` 等入口继承该字段
-- [ ] Test: 构造 relay info，确认 `ClientRequestedStream` 与初始化请求语义一致，且 helper 修改 `IsStream` 时不会改变它
+- [x] 在 `relay/common.RelayInfo` 中新增 `ClientRequestedStream bool`
+- [x] 在 `genBaseRelayInfo` 中由 `request.IsStream(c)` 同时初始化 `IsStream` 与 `ClientRequestedStream`
+- [x] 确保后续 handler、adapter、内部转换逻辑只修改 `IsStream`，不修改 `ClientRequestedStream`
+- [x] 检查 `GenRelayInfoResponses`、`GenRelayInfoOpenAI`、`GenRelayInfoClaude`、`GenRelayInfoGemini`、`GenRelayInfoImage` 等入口继承该字段
+- [x] Test: 构造 relay info，确认 `ClientRequestedStream` 与初始化请求语义一致，且 helper 修改 `IsStream` 时不会改变它
 
 ## 3. 上游 Content-Type 流式判定 Helper
 
-- [ ] 新增公共 helper：`ApplyUpstreamContentTypeStreamDetection(info, contentType)`
-- [ ] 使用 `mime.ParseMediaType` 解析 `Content-Type`
-- [ ] 支持大小写、前后空格、`; charset=utf-8` 等 `text/event-stream` 变体
-- [ ] helper 只收敛已有的上游 `Content-Type` -> `info.IsStream` 自动升级逻辑，不给无检测点入口新增检测
-- [ ] 默认关闭时保持现有行为：上游 `text/event-stream` 可升级 `info.IsStream`
-- [ ] 非目标 relay mode 保持现有行为：上游 `text/event-stream` 可升级 `info.IsStream`
-- [ ] 目标 relay mode 仅限 `RelayModeChatCompletions` 与 `RelayModeResponses`
-- [ ] 排除 `RelayModeResponsesCompact`、`RelayModeCompletions`、`RelayModeGemini`、images、messages 等非目标入口
-- [ ] 开启 `response_format` 且客户端非流式时，忽略上游错误 `text/event-stream` 对 `info.IsStream` 的升级
-- [ ] 开启 `response_format` 且客户端流式时，保持现有流式升级逻辑
-- [ ] 不在直接 `/v1/responses` 的 `ResponsesHelper` 中新增上游 `Content-Type` -> `info.IsStream` 自动检测
-- [ ] Test: 覆盖目标 mode、非目标 mode、ResponsesCompact、Gemini native、images、messages、completions
-- [ ] Test: 覆盖 `text/event-stream` media type 的大小写、空格、charset 参数和非法 media type
+- [x] 新增公共 helper：`ApplyUpstreamContentTypeStreamDetection(info, contentType)`
+- [x] 使用 `mime.ParseMediaType` 解析 `Content-Type`
+- [x] 支持大小写、前后空格、`; charset=utf-8` 等 `text/event-stream` 变体
+- [x] helper 只收敛已有的上游 `Content-Type` -> `info.IsStream` 自动升级逻辑，不给无检测点入口新增检测
+- [x] 默认关闭时保持现有行为：上游 `text/event-stream` 可升级 `info.IsStream`
+- [x] 非目标 relay mode 保持现有行为：上游 `text/event-stream` 可升级 `info.IsStream`
+- [x] 目标 relay mode 仅限 `RelayModeChatCompletions` 与 `RelayModeResponses`
+- [x] 排除 `RelayModeResponsesCompact`、`RelayModeCompletions`、`RelayModeGemini`、images、messages 等非目标入口
+- [x] 开启 `response_format` 且客户端非流式时，忽略上游错误 `text/event-stream` 对 `info.IsStream` 的升级
+- [x] 开启 `response_format` 且客户端流式时，保持现有流式升级逻辑
+- [x] 不在直接 `/v1/responses` 的 `ResponsesHelper` 中新增上游 `Content-Type` -> `info.IsStream` 自动检测
+- [x] Test: 覆盖目标 mode、非目标 mode、ResponsesCompact、Gemini native、images、messages、completions
+- [x] Test: 覆盖 `text/event-stream` media type 的大小写、空格、charset 参数和非法 media type
 
 ## 4. 替换现有流式误判点
 
