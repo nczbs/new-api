@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/logger"
 
 	"github.com/gin-gonic/gin"
@@ -59,6 +60,10 @@ func IOCopyBytesGracefully(c *gin.Context, src *http.Response, data []byte) {
 			}
 			c.Writer.Header().Set(k, v[0])
 		}
+	}
+
+	if common.GetContextKeyBool(c, constant.ContextKeyNormalizeResponseContentType) {
+		c.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 
 	// set Content-Length header manually BEFORE calling WriteHeader

@@ -37,55 +37,55 @@
 
 ## 4. 替换现有流式误判点
 
-- [ ] 将 `relay/compatible_handler.go` 中直接基于 `Content-Type` 修改 `info.IsStream` 的逻辑替换为 helper
-- [ ] 将 `relay/claude_handler.go` 中直接基于 `Content-Type` 修改 `info.IsStream` 的逻辑替换为 helper
-- [ ] 将 `relay/gemini_handler.go` 中直接基于 `Content-Type` 修改 `info.IsStream` 的逻辑替换为 helper
-- [ ] 将 `relay/image_handler.go` 中直接基于 `Content-Type` 修改 `info.IsStream` 的逻辑替换为 helper，确保非目标 images 仍保持现有行为
-- [ ] 将 `relay/chat_completions_via_responses.go` 中内部 Responses 转换路径的直接判定替换为 helper
-- [ ] 不修改直接 `/v1/responses` 为新增基于上游 `Content-Type` 的 stream auto-detect
-- [ ] 移除替换后不再需要的 `strings` import
-- [ ] Test: `/v1/chat/completions` 非流式请求开启配置后，遇到上游 `Content-Type: text/event-stream` 不升级为流式
-- [ ] Test: `chat_completions_via_responses` 内部转换路径开启配置后，遇到上游 `Content-Type: text/event-stream` 不升级为流式
-- [ ] Test: `/v1/messages`、Gemini native、images、旧 `/v1/completions` 不受新配置影响
+- [x] 将 `relay/compatible_handler.go` 中直接基于 `Content-Type` 修改 `info.IsStream` 的逻辑替换为 helper
+- [x] 将 `relay/claude_handler.go` 中直接基于 `Content-Type` 修改 `info.IsStream` 的逻辑替换为 helper
+- [x] 将 `relay/gemini_handler.go` 中直接基于 `Content-Type` 修改 `info.IsStream` 的逻辑替换为 helper
+- [x] 将 `relay/image_handler.go` 中直接基于 `Content-Type` 修改 `info.IsStream` 的逻辑替换为 helper，确保非目标 images 仍保持现有行为
+- [x] 将 `relay/chat_completions_via_responses.go` 中内部 Responses 转换路径的直接判定替换为 helper
+- [x] 不修改直接 `/v1/responses` 为新增基于上游 `Content-Type` 的 stream auto-detect
+- [x] 移除替换后不再需要的 `strings` import
+- [x] Test: `/v1/chat/completions` 非流式请求开启配置后，遇到上游 `Content-Type: text/event-stream` 不升级为流式
+- [x] Test: `chat_completions_via_responses` 内部转换路径开启配置后，遇到上游 `Content-Type: text/event-stream` 不升级为流式
+- [x] Test: `/v1/messages`、Gemini native、images、旧 `/v1/completions` 不受新配置影响
 
 ## 5. 响应头规范化 Context Flag
 
-- [ ] 在 `constant/context_key.go` 中新增响应头规范化 context key
-- [ ] 在 relay 层新增 helper，根据 `RelayInfo` 和上游状态码计算是否需要规范化响应头
-- [ ] 使用已确认的 A 方案：relay 层写入 context flag，统一写回路径只读取 flag 执行 header 覆盖
-- [ ] 生效条件限制为：配置开启、`RelayModeChatCompletions` 或 `RelayModeResponses`、`ClientRequestedStream=false`、`info.IsStream=false`、上游 `StatusCode == http.StatusOK`
-- [ ] 直接 `/v1/responses` 的 `200 OK` 非流式写回需要设置响应头规范化 flag
-- [ ] `chat_completions_via_responses` 内部转换路径的 `200 OK` 非流式写回需要设置响应头规范化 flag
-- [ ] 非 200 错误响应不得设置规范化 flag
-- [ ] 客户端流式请求不得设置规范化 flag
-- [ ] ResponsesCompact 不得设置规范化 flag
-- [ ] Test: 覆盖 context flag 的启用、关闭、非 200、客户端流式、ResponsesCompact 分支
+- [x] 在 `constant/context_key.go` 中新增响应头规范化 context key
+- [x] 在 relay 层新增 helper，根据 `RelayInfo` 和上游状态码计算是否需要规范化响应头
+- [x] 使用已确认的 A 方案：relay 层写入 context flag，统一写回路径只读取 flag 执行 header 覆盖
+- [x] 生效条件限制为：配置开启、`RelayModeChatCompletions` 或 `RelayModeResponses`、`ClientRequestedStream=false`、`info.IsStream=false`、上游 `StatusCode == http.StatusOK`
+- [x] 直接 `/v1/responses` 的 `200 OK` 非流式写回需要设置响应头规范化 flag
+- [x] `chat_completions_via_responses` 内部转换路径的 `200 OK` 非流式写回需要设置响应头规范化 flag
+- [x] 非 200 错误响应不得设置规范化 flag
+- [x] 客户端流式请求不得设置规范化 flag
+- [x] ResponsesCompact 不得设置规范化 flag
+- [x] Test: 覆盖 context flag 的启用、关闭、非 200、客户端流式、ResponsesCompact 分支
 
 ## 6. 统一写回路径接入
 
-- [ ] 在 `service.IOCopyBytesGracefully` 中读取 context flag
-- [ ] 在复制上游 header 之后、设置 `Content-Length` 和 `WriteHeader` 之前覆盖 `Content-Type`
-- [ ] 覆盖值固定为 `application/json; charset=utf-8`
-- [ ] 保留其他上游 header 复制逻辑
-- [ ] 保留 `Content-Length` 按最终 body 重新计算逻辑
-- [ ] 保留 `X-Oneapi-Request-Id` 捕获和本地 request id 保护逻辑
-- [ ] 不在 adapter 或 handler 中分散手写 `Content-Type` 覆盖
-- [ ] Test: 开启配置后，目标接口 `200 OK` 非流式响应最终返回 `application/json; charset=utf-8`
-- [ ] Test: `Content-Length` 仍等于最终 body 长度
-- [ ] Test: 请求 ID 捕获逻辑不变
+- [x] 在 `service.IOCopyBytesGracefully` 中读取 context flag
+- [x] 在复制上游 header 之后、设置 `Content-Length` 和 `WriteHeader` 之前覆盖 `Content-Type`
+- [x] 覆盖值固定为 `application/json; charset=utf-8`
+- [x] 保留其他上游 header 复制逻辑
+- [x] 保留 `Content-Length` 按最终 body 重新计算逻辑
+- [x] 保留 `X-Oneapi-Request-Id` 捕获和本地 request id 保护逻辑
+- [x] 不在 adapter 或 handler 中分散手写 `Content-Type` 覆盖
+- [x] Test: 开启配置后，目标接口 `200 OK` 非流式响应最终返回 `application/json; charset=utf-8`
+- [x] Test: `Content-Length` 仍等于最终 body 长度
+- [x] Test: 请求 ID 捕获逻辑不变
 
 ## 7. Responses 直接入口与内部转换校验
 
-- [ ] 检查直接 `/v1/responses` 入口，确认流式语义仍来自请求体 `stream`
-- [ ] 直接 `/v1/responses` 只新增 `200 OK` 非流式响应头规范化 flag，不新增 stream auto-detect
-- [ ] 检查 `/v1/responses/compact` 对应 `RelayModeResponsesCompact`，确认不被 response_format 覆盖
-- [ ] 在 `chat_completions_via_responses` 临时切换到 `RelayModeResponses` 时设置或清理规范化 flag
-- [ ] 在 `chat_completions_via_responses` 临时切换到 `RelayModeResponses` 时替换已有 stream auto-detect
-- [ ] 确保内部转换结束后恢复原 `RelayMode` 和 `RequestURLPath`
-- [ ] Test: 直接 `/v1/responses` 的 stream 判断不因上游响应头改变客户端语义
-- [ ] Test: 直接 `/v1/responses` 开启配置后，`200 OK` 非流式响应最终返回 `application/json; charset=utf-8`
-- [ ] Test: `chat_completions_via_responses` 开启配置后，`200 OK` 非流式响应最终返回 `application/json; charset=utf-8`
-- [ ] Test: `/v1/responses/compact` 不升级、不规范化、不改变现有响应行为
+- [x] 检查直接 `/v1/responses` 入口，确认流式语义仍来自请求体 `stream`
+- [x] 直接 `/v1/responses` 只新增 `200 OK` 非流式响应头规范化 flag，不新增 stream auto-detect
+- [x] 检查 `/v1/responses/compact` 对应 `RelayModeResponsesCompact`，确认不被 response_format 覆盖
+- [x] 在 `chat_completions_via_responses` 临时切换到 `RelayModeResponses` 时设置或清理规范化 flag
+- [x] 在 `chat_completions_via_responses` 临时切换到 `RelayModeResponses` 时替换已有 stream auto-detect
+- [x] 确保内部转换结束后恢复原 `RelayMode` 和 `RequestURLPath`
+- [x] Test: 直接 `/v1/responses` 的 stream 判断不因上游响应头改变客户端语义
+- [x] Test: 直接 `/v1/responses` 开启配置后，`200 OK` 非流式响应最终返回 `application/json; charset=utf-8`
+- [x] Test: `chat_completions_via_responses` 开启配置后，`200 OK` 非流式响应最终返回 `application/json; charset=utf-8`
+- [x] Test: `/v1/responses/compact` 不升级、不规范化、不改变现有响应行为
 
 ## 8. 前端表单类型与默认值
 

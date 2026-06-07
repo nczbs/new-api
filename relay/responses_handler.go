@@ -130,6 +130,7 @@ func ResponsesHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *
 			service.ResetStatusCode(newAPIError, statusCodeMappingStr)
 			return newAPIError
 		}
+		relaycommon.ApplyResponseContentTypeNormalizationFlag(c, info, httpResp.StatusCode)
 	}
 
 	usage, newAPIError := adaptor.DoResponse(c, httpResp, info)

@@ -201,13 +201,14 @@ func ClaudeHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *typ
 
 	if resp != nil {
 		httpResp = resp.(*http.Response)
-		info.IsStream = info.IsStream || strings.HasPrefix(httpResp.Header.Get("Content-Type"), "text/event-stream")
+		relaycommon.ApplyUpstreamContentTypeStreamDetection(info, httpResp.Header.Get("Content-Type"))
 		if httpResp.StatusCode != http.StatusOK {
 			newAPIError = service.RelayErrorHandler(c.Request.Context(), httpResp, false)
 			// reset status code 重置状态码
 			service.ResetStatusCode(newAPIError, statusCodeMappingStr)
 			return newAPIError
 		}
+		relaycommon.ApplyResponseContentTypeNormalizationFlag(c, info, httpResp.StatusCode)
 	}
 
 	usage, newAPIError := adaptor.DoResponse(c, httpResp, info)
