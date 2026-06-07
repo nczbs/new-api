@@ -4,8 +4,8 @@ Date: 2026-06-07
 Feature Slice: Relay stream detection call-sites and non-stream response header normalization
 Status: completed
 Branch: dev
-Commit: pending
-Pushed: no
+Commit: e2852193
+Pushed: yes
 Design Document: docs/dev/response-format-dev.md
 Checklist Document: docs/dev/checklsit/response-format-checklist.md
 

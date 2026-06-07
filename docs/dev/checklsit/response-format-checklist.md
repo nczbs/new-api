@@ -89,80 +89,80 @@
 
 ## 8. 前端表单类型与默认值
 
-- [ ] 在 `web/default/src/features/channels/types.ts` 中为 `ChannelSettings` 增加 `response_format`
-- [ ] 定义前端 `ChannelResponseFormatSettings` 类型，包含 `enabled`、`mode`、`rules`
-- [ ] 在 `channel-form.ts` 的 Zod schema 中新增统一响应格式表单字段
-- [ ] 在默认表单值中设置统一响应格式开关为关闭
-- [ ] 编辑旧渠道时，`setting.response_format` 缺失应回填为关闭
-- [ ] 编辑已有渠道时，正确读取 `response_format.enabled`
-- [ ] 编辑已有渠道时，`response_format.rules` 应作为对象数组保留，不能被类型收窄为固定空对象
-- [ ] Test: 新建渠道默认关闭
-- [ ] Test: 编辑旧渠道缺少 `response_format` 时默认关闭
+- [x] 在 `web/default/src/features/channels/types.ts` 中为 `ChannelSettings` 增加 `response_format`
+- [x] 定义前端 `ChannelResponseFormatSettings` 类型，包含 `enabled`、`mode`、`rules`
+- [x] 在 `channel-form.ts` 的 Zod schema 中新增统一响应格式表单字段
+- [x] 在默认表单值中设置统一响应格式开关为关闭
+- [x] 编辑旧渠道时，`setting.response_format` 缺失应回填为关闭
+- [x] 编辑已有渠道时，正确读取 `response_format.enabled`
+- [x] 编辑已有渠道时，`response_format.rules` 应作为对象数组保留，不能被类型收窄为固定空对象
+- [x] Test: 新建渠道默认关闭
+- [x] Test: 编辑旧渠道缺少 `response_format` 时默认关闭
 
 ## 9. 前端 Setting JSON 序列化
 
-- [ ] 修改 `buildSettingJSON`，保存 `response_format.enabled`
-- [ ] 保存时始终写入 `response_format.mode = "client_stream"`
-- [ ] 开启保存时，新渠道可写入 `rules: []`
-- [ ] 开启保存编辑已有渠道时，保留已有 `response_format.rules` 及每条规则中的未知字段
-- [ ] 关闭保存时，写入完整默认对象：`enabled=false`、`mode="client_stream"`、`rules=[]`
-- [ ] 不删除整个 `response_format` 对象
-- [ ] 不展示、不执行 `rules` 列表
-- [ ] Test: 开启后保存的 `setting` JSON 包含 `response_format.enabled=true`
-- [ ] Test: 关闭后保存的 `setting` JSON 包含完整关闭对象
-- [ ] Test: 编辑已有渠道开启保存时保留已有 `rules`，并验证未知字段 round-trip 不丢失
+- [x] 修改 `buildSettingJSON`，保存 `response_format.enabled`
+- [x] 保存时始终写入 `response_format.mode = "client_stream"`
+- [x] 开启保存时，新渠道可写入 `rules: []`
+- [x] 开启保存编辑已有渠道时，保留已有 `response_format.rules` 及每条规则中的未知字段
+- [x] 关闭保存时，写入完整默认对象：`enabled=false`、`mode="client_stream"`、`rules=[]`
+- [x] 不删除整个 `response_format` 对象
+- [x] 不展示、不执行 `rules` 列表
+- [x] Test: 开启后保存的 `setting` JSON 包含 `response_format.enabled=true`
+- [x] Test: 关闭后保存的 `setting` JSON 包含完整关闭对象
+- [x] Test: 编辑已有渠道开启保存时保留已有 `rules`，并验证未知字段 round-trip 不丢失
 
 ## 10. 前端高级设置 UI
 
-- [ ] 在 `Channel Extra Settings` 区域新增 `Unified Response Format` 开关
-- [ ] 将开关放在 `Force Format`、`Thinking to Content`、`Pass Through Body` 等通用渠道行为设置同组
-- [ ] 添加说明文案：`Normalize non-streaming chat and responses output based on the client stream mode.`
-- [ ] 将该字段接入高级设置展开判断
-- [ ] 将该字段接入错误字段映射或字段错误显示逻辑
-- [ ] 确保 UI 不展示规则列表入口
-- [ ] Test: 打开渠道创建/编辑抽屉，确认开关显示、默认状态正确、保存 payload 正确
+- [x] 在 `Channel Extra Settings` 区域新增 `Unified Response Format` 开关
+- [x] 将开关放在 `Force Format`、`Thinking to Content`、`Pass Through Body` 等通用渠道行为设置同组
+- [x] 添加说明文案：`Normalize non-streaming chat and responses output based on the client stream mode.`
+- [x] 将该字段接入高级设置展开判断
+- [x] 将该字段接入错误字段映射或字段错误显示逻辑
+- [x] 确保 UI 不展示规则列表入口
+- [x] Test: 打开渠道创建/编辑抽屉，确认开关显示、默认状态正确、保存 payload 正确
 
 ## 11. 前端 i18n
 
-- [ ] 在 `en.json` 添加 `Unified Response Format`
-- [ ] 在 `en.json` 添加 `Normalize non-streaming chat and responses output based on the client stream mode.`
-- [ ] 在 `zh.json` 添加对应简体中文翻译
-- [ ] 在 `fr.json` 添加对应法语翻译
-- [ ] 在 `ja.json` 添加对应日语翻译
-- [ ] 在 `ru.json` 添加对应俄语翻译
-- [ ] 在 `vi.json` 添加对应越南语翻译
-- [ ] 运行 `bun run i18n:sync`
-- [ ] Test: 确认新增 `t()` key 在所有 locale 文件中存在且无缺失
+- [x] 在 `en.json` 添加 `Unified Response Format`
+- [x] 在 `en.json` 添加 `Normalize non-streaming chat and responses output based on the client stream mode.`
+- [x] 在 `zh.json` 添加对应简体中文翻译
+- [x] 在 `fr.json` 添加对应法语翻译
+- [x] 在 `ja.json` 添加对应日语翻译
+- [x] 在 `ru.json` 添加对应俄语翻译
+- [x] 在 `vi.json` 添加对应越南语翻译
+- [x] 运行 `bun run i18n:sync`
+- [x] Test: 确认新增 `t()` key 在所有 locale 文件中存在且无缺失
 
 ## 12. 后端回归测试
 
-- [ ] 新增或扩展 relay common helper 单元测试
-- [ ] 新增或扩展响应写回 header 规范化测试
-- [ ] 覆盖默认关闭时保持现有行为
-- [ ] 覆盖开启后非流式目标接口不被上游错误 `text/event-stream` 升级
-- [ ] 覆盖客户端流式请求仍走流式响应
-- [ ] 覆盖非目标入口不受影响
-- [ ] 覆盖非 200 错误响应不进入统一响应格式处理
-- [ ] 覆盖上游 body 实际为 SSE 时不做聚合转换，沿用非流式解析失败路径
-- [ ] 覆盖 `response_format.rules` 使用 `[]map[string]any` 保留未知字段，不使用空 struct
-- [ ] 运行聚焦测试：`go test ./relay/common ./service ./relay/...`
-- [ ] 按失败范围补充运行更窄或更广的 Go 测试
+- [x] 新增或扩展 relay common helper 单元测试
+- [x] 新增或扩展响应写回 header 规范化测试
+- [x] 覆盖默认关闭时保持现有行为
+- [x] 覆盖开启后非流式目标接口不被上游错误 `text/event-stream` 升级
+- [x] 覆盖客户端流式请求仍走流式响应
+- [x] 覆盖非目标入口不受影响
+- [x] 覆盖非 200 错误响应不进入统一响应格式处理
+- [x] 覆盖上游 body 实际为 SSE 时不做聚合转换，沿用非流式解析失败路径
+- [x] 覆盖 `response_format.rules` 使用 `[]map[string]any` 保留未知字段，不使用空 struct
+- [x] 运行聚焦测试：`go test ./relay/common ./service ./relay/...`
+- [x] 按失败范围补充运行更窄或更广的 Go 测试
 
 ## 13. 前端验证
 
-- [ ] 运行 `bun run typecheck`
-- [ ] 运行渠道表单相关测试或可用的前端测试脚本
-- [ ] 检查创建渠道 payload 中 `setting.response_format` 的开启和关闭序列化
-- [ ] 检查编辑渠道回填中旧渠道、新配置渠道、有保留 rules 渠道的显示状态
-- [ ] 检查有未知字段的 `rules` 在前端回填、切换开关、保存后不被清空或裁剪
-- [ ] 检查新增 UI 文案不会溢出或破坏高级设置布局
+- [x] 运行 `bun run typecheck`
+- [x] 运行渠道表单相关测试或可用的前端测试脚本
+- [x] 检查创建渠道 payload 中 `setting.response_format` 的开启和关闭序列化
+- [x] 检查编辑渠道回填中旧渠道、新配置渠道、有保留 rules 渠道的显示状态
+- [x] 检查有未知字段的 `rules` 在前端回填、切换开关、保存后不被清空或裁剪
+- [x] 检查新增 UI 文案不会溢出或破坏高级设置布局
 
 ## 14. 最终检查
 
-- [ ] 运行 `gofmt` 格式化修改过的 Go 文件
-- [ ] 检查没有直接新增业务代码中的 `encoding/json` marshal/unmarshal 调用
-- [ ] 检查没有新增数据库列或迁移
-- [ ] 检查没有修改 `web/classic`
-- [ ] 检查没有修改受保护项目标识和组织标识
-- [ ] 检查 `git diff`，确认改动范围仅限本功能
-- [ ] 汇总已运行的后端测试、前端 typecheck、i18n 同步结果
+- [x] 运行 `gofmt` 格式化修改过的 Go 文件
+- [x] 检查没有直接新增业务代码中的 `encoding/json` marshal/unmarshal 调用
+- [x] 检查没有新增数据库列或迁移
+- [x] 检查没有修改 `web/classic`
+- [x] 检查没有修改受保护项目标识和组织标识
+- [x] 检查 `git diff`，确认改动范围仅限本功能
+- [x] 汇总已运行的后端测试、前端 typecheck、i18n 同步结果
